@@ -1,0 +1,43 @@
+---
+title: "Por que renderizar no servidor mudou como eu penso front-end"
+description: "Server Components nao sao so uma otimizacao: eles mudam onde a logica mora e quanto JavaScript chega ao navegador."
+date: "2026-09-20"
+tags: ["react", "nextjs", "arquitetura"]
+---
+
+Quando comecei com React, tudo era renderizado no navegador: o servidor entregava um HTML vazio e o JavaScript fazia o resto. Funcionava, mas o preco era alto — bundles enormes, waterfalls de fetch e telas de loading em cascata.
+
+## O que muda com Server Components
+
+Com React Server Components, o componente roda no servidor por padrao e so vira cliente quando precisa de interatividade. Na pratica:
+
+- **Menos JavaScript enviado**: componentes de servidor nao entram no bundle do cliente.
+- **Acesso direto a dados**: nada de rota de API intermediaria para ler um banco ou o sistema de arquivos.
+- **Streaming**: o servidor envia o HTML em partes, e o usuario ve conteudo antes da pagina inteira estar pronta.
+
+```tsx
+// Este componente roda apenas no servidor.
+// Ele nunca vira JavaScript no navegador.
+export default async function PostList() {
+  const posts = await getPosts();
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.slug}>{post.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## O que eu faria diferente
+
+O erro mais comum e marcar tudo com `'use client'` por habito, recriando o modelo antigo dentro do novo. A regra mental que uso: empurre a interatividade para as folhas da arvore. Um card de post nao precisa ser cliente; so o botao de curtir dentro dele precisa.
+
+<Callout type="info">
+Este blog inteiro e renderizado estaticamente: cada pagina de post vira um HTML pronto no build, sem nenhum JavaScript de renderizacao no cliente.
+</Callout>
+
+## Conclusao
+
+Renderizar no servidor nao e voltar no tempo para o PHP — e escolher, componente a componente, onde cada pedaco de logica executa melhor. Esse controle fino e o que torna o modelo atual tao poderoso.

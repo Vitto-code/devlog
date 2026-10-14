@@ -1,0 +1,38 @@
+---
+title: "Testes que realmente pegam bugs: contratos em vez de mocks"
+description: "Testar implementacao gera suite fragil. Testar contratos — entradas, saidas e erros — gera suite que sobrevive a refatoracao."
+date: "2026-10-02"
+tags: ["testes", "qualidade", "typescript"]
+---
+
+Todo mundo ja viu a suite de testes que quebra inteira quando alguem renomeia uma funcao interna. O problema quase nunca e o teste em si — e o que ele decidiu observar.
+
+## Mockar tudo e testar nada
+
+Quando um teste mocka tres camadas de dependencias e verifica que "a funcao X foi chamada com Y", ele nao testa comportamento: ele testa a implementacao atual. Refatorou, quebrou. O teste vira custo, nao protecao.
+
+## O que e testar contrato
+
+Contrato e a fronteira publica de um modulo: o que entra, o que sai e quais erros ele promete lançar. Exemplo real deste blog — a funcao que le posts exige `title`, `description` e `date` no frontmatter:
+
+```ts
+it('rejeita post sem campos obrigatorios', () => {
+  expect(() => getPosts(dirComPostInvalido)).toThrow(
+    'sem frontmatter obrigatorio',
+  );
+});
+```
+
+Esse teste nao sabe nada sobre `gray-matter`, `fs` ou regex internas. Se eu trocar o parser amanha, o teste continua valido — porque o contrato nao mudou.
+
+## Casos de erro sao metade do contrato
+
+Uma regra simples: para cada caminho de sucesso, pelo menos um caminho de erro testado. Data invalida, slug duplicado, busca vazia, XML com caracteres especiais. E no erro que os sistemas reais passam a maior parte do tempo degradado.
+
+<Callout type="warning">
+Cobertura alta com mocks profundos e falsa sensacao de seguranca. Prefira 70% de cobertura sobre contratos do que 95% sobre detalhes internos.
+</Callout>
+
+## Conclusao
+
+Antes de escrever o proximo teste, pergunte: "se eu reescrever esse modulo do zero mantendo o comportamento, o teste continua passando?" Se a resposta for nao, voce esta testando implementacao.
