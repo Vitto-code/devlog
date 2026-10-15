@@ -1,0 +1,39 @@
+---
+title: "SSG, SSR ou ISR: como escolher sem adivinhar"
+description: "A pergunta certa nao e 'qual estrategia e melhor', e sim 'com que frequencia esse dado muda e quem espera por ele'."
+date: "2026-10-08"
+tags: ["nextjs", "arquitetura", "performance"]
+---
+
+A escolha entre geracao estatica, renderizacao no servidor e revalidacao incremental trava muitos times porque e tratada como questao de gosto. E uma questao de dados.
+
+## A matriz de decisao
+
+Duas perguntas resolvem 90% dos casos:
+
+1. **Com que frequencia o conteudo muda?** Um post de blog muda quando alguem edita um arquivo. Um painel de cotacoes muda a cada segundo.
+2. **Quem espera pela resposta?** Um leitor de blog tolera 200 ms; um robô de busca tambem. Um operador de dashboard nao tolera dados de ontem.
+
+| Cenario | Mudanca | Estrategia |
+| --- | --- | --- |
+| Post de blog | Por deploy | SSG puro |
+| Catalogo de produtos | Minutos/horas | ISR com revalidate |
+| Feed personalizado | Por requisicao | SSR |
+| Dados em tempo real | Segundos | SSR + cache curto ou cliente |
+
+## O custo escondido do SSR em tudo
+
+SSR por requisicao parece o caminho seguro, mas transforma cada visita em trabalho de servidor: latencia maior, custo por request e um ponto de falha a mais. Este blog usa SSG puro — inclusive o feed RSS e o sitemap sao arquivos estaticos gerados no build:
+
+```ts
+// feed.xml/route.ts: vira um arquivo estatico, nao uma funcao.
+export const dynamic = 'force-static';
+
+export function GET() {
+  return new Response(buildRssFeed(site, getPublishedPosts()));
+}
+```
+
+## Conclusao
+
+Comece estatico. Promova para ISR quando o conteudo mudar entre deploys. Use SSR apenas quando o dado for por-requisicao e por-usuario. Inverter essa ordem e pagar por complexidade que ninguem pediu.

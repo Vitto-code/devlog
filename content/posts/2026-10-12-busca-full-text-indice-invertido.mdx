@@ -1,0 +1,43 @@
+---
+title: "Busca full-text sem servico externo: um indice invertido em 100 linhas"
+description: "Como este blog implementa busca instantanea no navegador com um indice gerado no build — e por que voce nao precisa de Algolia para cinco posts."
+date: "2026-10-12"
+tags: ["busca", "algoritmos", "typescript"]
+---
+
+A busca deste blog nao chama nenhuma API. Um script gera um indice invertido no build, o navegador baixa um JSON de poucos KB e a consulta roda localmente em menos de um milissegundo.
+
+## O que e um indice invertido
+
+Em vez de guardar "documento -> palavras" e varrer tudo a cada busca, invertemos: guardamos "palavra -> documentos". A busca vira uma consulta de dicionario:
+
+```ts
+// De: [{ slug: 'post-a', text: 'renderizar no servidor' }]
+// Para: { renderizar: { 'post-a': 1 }, servidor: { 'post-a': 1 } }
+postings[term][slug] = score;
+```
+
+## Tres decisoes que importam mais que o algoritmo
+
+**Normalizacao.** "Acessibilidade" e "acessibilidade" precisam dar o mesmo resultado. Minusculas + remocao de acentos com `normalize('NFD')`:
+
+```ts
+export function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
+```
+
+**Ponderacao.** Um termo no titulo vale mais que no meio do texto. Aqui: titulo 3x, tags 2x, corpo 1x.
+
+**AND estrito.** Todos os termos da consulta precisam existir no documento. Com poucos documentos, recall alto e melhor que ranking sofisticado.
+
+## Quando isso nao basta
+
+Acima de alguns milhares de documentos, o JSON do indice fica grande demais para baixar no cliente — ai sim faz sentido um servico de busca. Abaixo disso, um indice invertido caseiro e mais rapido, mais privado e sem custo.
+
+<Callout type="info">
+O codigo completo esta em <code>src/lib/search.ts</code> e os testes em <code>tests/search.test.ts</code>, incluindo normalizacao de acentos e ordenacao por score.
+</Callout>
