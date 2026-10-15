@@ -8,7 +8,7 @@ export interface SiteConfig {
   locale: string;
 }
 
-export function getSiteConfig(env: NodeJS.ProcessEnv = process.env): SiteConfig {
+export function getSiteConfig(env: Record<string, string | undefined> = process.env): SiteConfig {
   return {
     name: 'devlog',
     title: 'devlog — engenharia de software na pratica',

@@ -1,4 +1,5 @@
-import type { AnchorHTMLAttributes, ComponentType } from 'react';
+import type { MDXComponents } from 'mdx/types';
+import type { AnchorHTMLAttributes } from 'react';
 import { Callout } from './Callout';
 
 function ExternalSafeLink(props: AnchorHTMLAttributes<HTMLAnchorElement>) {
@@ -16,7 +17,7 @@ function ExternalSafeLink(props: AnchorHTMLAttributes<HTMLAnchorElement>) {
  * Componentes disponiveis para todos os posts MDX.
  * Links externos ganham target/rel seguros automaticamente.
  */
-export const mdxComponents: Record<string, ComponentType<never>> = {
-  Callout: Callout as ComponentType<never>,
-  a: ExternalSafeLink as ComponentType<never>,
+export const mdxComponents: MDXComponents = {
+  Callout,
+  a: ExternalSafeLink,
 };
