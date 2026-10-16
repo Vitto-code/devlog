@@ -7,3 +7,4 @@ coverage/
 *.log
 public/search-index.json
 next-env.d.ts
+tsconfig.tsbuildinfo
